@@ -25,7 +25,6 @@ Metadata:
       AWSRegion:
         default: AWS Region the job is running in
         
-
 Parameters:
   NFJobQueue:
     Type: String
@@ -43,13 +42,12 @@ Parameters:
     Type: String
     Description: 'AWS Region the job is running in'
 
-
 Resources:
   JobDefinition:
     Type: AWS::Batch::JobDefinition
     Properties:
       Type: container
-      JobDefinitionName: nextflow-demo
+      JobDefinitionName: nextflow-demo-2
       ContainerProperties:
         Image: !Ref ImageId 
         ResourceRequirements:
