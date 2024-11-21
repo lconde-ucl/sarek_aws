@@ -39,6 +39,14 @@ Parameters:
     Description: Maximum number of CPUs in the default compute environment. Should be >= than MinCpus
     Default: 100
     MinValue: 0
+  DefaultImageIdOverride:
+    Type: String
+    Default: "ami-0bd2e00039b61a455"
+    Description: The custom AMI ID for the ECS Batch compute environment
+  DefaultImageType:
+    Type: String
+    Default: "ECS_AL2023"
+    Description: Custom AMI type
 
 Resources:
   GenomicsBatchSecurityGroup:
@@ -72,11 +80,12 @@ Resources:
       ToPort: 65535
       SourceSecurityGroupId: !Ref GenomicsBatchSecurityGroup
 
+
   GenomicsDefaultComputeEnv:
     Type: AWS::Batch::ComputeEnvironment
     Properties:
       ComputeEnvironmentName: !Sub
-        - nextflow-ce
+        - nextflow-ce-2
         - StackGuid: !Select [ 2, !Split [ "/", !Ref "AWS::StackId" ]]
       ServiceRole: !Ref BatchServiceRole
       Type: MANAGED
@@ -92,12 +101,13 @@ Resources:
           - !Ref GenomicsBatchSecurityGroup
         Type: EC2
         Ec2Configuration:
-          - ImageType: "ECS_AL2023"
-            ImageIdOverride: "ami-0788dd3f7e65c7939"
+          - ImageType: !Ref DefaultImageType
+            ImageIdOverride: !Ref DefaultImageIdOverride
         Tags:
           Name: !Sub
             - nextflow-batch-ondemand-worker-${StackGuid}
             - StackGuid: !Select [ 2, !Split [ "/", !Ref "AWS::StackId" ]]
+
  
   GenomicsDefaultQueue:
     Type: AWS::Batch::JobQueue
