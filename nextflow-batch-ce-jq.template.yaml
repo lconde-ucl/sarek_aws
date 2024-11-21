@@ -85,7 +85,7 @@ Resources:
     Type: AWS::Batch::ComputeEnvironment
     Properties:
       ComputeEnvironmentName: !Sub
-        - nextflow-ce-2
+        - nextflow-ce-lc
         - StackGuid: !Select [ 2, !Split [ "/", !Ref "AWS::StackId" ]]
       ServiceRole: !Ref BatchServiceRole
       Type: MANAGED
@@ -113,7 +113,7 @@ Resources:
     Type: AWS::Batch::JobQueue
     Properties:
       JobQueueName: !Sub
-        - nextflow-jq
+        - nextflow-jq-lc
         - StackGuid: !Select [ 2, !Split [ "/", !Ref "AWS::StackId" ]]
       Priority: 10
       State: ENABLED
