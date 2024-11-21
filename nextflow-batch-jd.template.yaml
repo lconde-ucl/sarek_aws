@@ -1,0 +1,89 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AWS Batch Job definition for Nextflow'
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "AWS Batch Job Definition Config"
+        Parameters:
+        - NFJobQueue
+        - BucketNameResults
+        - ImageId
+        - ECSRoleArn
+        - AWSRegion
+    ParameterLabels:
+      NFJobQueue:
+        default: AWS Batch Job Queue name to execute Nextflow jobs 
+      BucketNameResults:
+        default: Amazon S3 bucket name to store Nextflow results
+      ImageId:
+        default: ECR Repo name
+      ECSRoleArn:
+        default: ECS Task Execution Role Arn
+      AWSRegion:
+        default: AWS Region the job is running in
+        
+
+Parameters:
+  NFJobQueue:
+    Type: String
+    Description: 'The name of the AWS Batch Job Queue to execute Nextflow jobs'
+  BucketNameResults:
+    Type: String
+    Description: 'The name of the Amazon S3 bucket name to store Nextflow results.'
+  ImageId:
+    Type: String
+    Description: 'The name of the ECR repo'
+  ECSRoleArn:
+    Type: String
+    Description: 'Arn of the ECS Task Execution Role'
+  AWSRegion:
+    Type: String
+    Description: 'AWS Region the job is running in'
+
+
+Resources:
+  JobDefinition:
+    Type: AWS::Batch::JobDefinition
+    Properties:
+      Type: container
+      JobDefinitionName: nextflow-demo
+      ContainerProperties:
+        Image: !Ref ImageId 
+        ResourceRequirements:
+        - Type: VCPU
+          Value: '16'
+        - Type: MEMORY
+          Value: '1024'
+        ExecutionRoleArn: !Ref ECSRoleArn 
+        Volumes:
+          - Name: aws-cli
+            Host:
+              SourcePath: /home/ec2-user/miniconda
+        MountPoints:
+          - SourceVolume: aws-cli
+            ContainerPath: /home/ec2-user/miniconda
+            ReadOnly: true
+        Command:
+        - /usr/local/bin/entrypoint.sh
+        Environment:
+        - Name: PIPELINE_URL
+          Value: https://github.com/seqeralabs/nextflow-tutorial  
+        - Name: NF_SCRIPT
+          Value: script7.nf
+        - Name: NXF_DEFAULT_DSL
+          Value: 1
+        - Name: BUCKET_NAME_RESULTS
+          Value: !Ref BucketNameResults
+        - Name: NF_JOB_QUEUE
+          Value: !Ref NFJobQueue
+        - Name: NXF_VER
+          Value: 22.10.8
+        - Name: AWS_REGION
+          Value: !Ref AWSRegion
+      Timeout:
+        AttemptDurationSeconds: 500
+      RetryStrategy:
+        Attempts: 1
