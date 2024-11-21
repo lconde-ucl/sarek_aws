@@ -1,0 +1,151 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Deploys resource for a AWS Batch environment that is  suitable for genomics, with a single compute environment and job queue.
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "AWS Batch Environment Config"
+        Parameters:
+        - VpcId
+        - SubnetIds
+        - DefaultCEMinvCpus
+        - DefaultCEMaxvCpus
+    ParameterLabels:
+      VpcId:
+        default: VPC ID
+      SubnetIds:
+        default: VPC Subnet IDs
+      DefaultCEMinvCpus:
+        default: Default Queue Min vCPU count
+      DefaultCEMaxvCpus:
+        default: Default Queue Max vCPU count
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: 'The VPC to create security groups and deploy AWS Batch to. NOTE: Must be the same VPC as the provided subnet IDs.'
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: 'Subnets you want your batch compute environment to launch in. We recommend private subnets. NOTE: Must be from the VPC provided.'
+  DefaultCEMinvCpus:
+    Type: Number
+    Description: Minimum number of CPUs in the default compute environment. Default 0.
+    Default: 0
+    MinValue: 0
+  DefaultCEMaxvCpus:
+    Type: Number
+    Description: Maximum number of CPUs in the default compute environment. Should be >= than MinCpus
+    Default: 100
+    MinValue: 0
+
+Resources:
+  GenomicsBatchSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG for genomics workflows on Batch
+      VpcId:
+        Ref: VpcId
+  SGSSHIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref GenomicsBatchSecurityGroup
+      IpProtocol: tcp
+      FromPort: 22
+      ToPort: 22
+      CidrIp: 0.0.0.0/0
+  SGAllTcpEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref GenomicsBatchSecurityGroup
+      IpProtocol: tcp
+      FromPort: 0
+      ToPort: 65535
+      CidrIp: 0.0.0.0/0
+  SGAllTcpSelfIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref GenomicsBatchSecurityGroup
+      IpProtocol: tcp
+      FromPort: 0
+      ToPort: 65535
+      SourceSecurityGroupId: !Ref GenomicsBatchSecurityGroup
+
+  GenomicsDefaultComputeEnv:
+    Type: AWS::Batch::ComputeEnvironment
+    Properties:
+      ComputeEnvironmentName: !Sub
+        - nextflow-ce
+        - StackGuid: !Select [ 2, !Split [ "/", !Ref "AWS::StackId" ]]
+      ServiceRole: !Ref BatchServiceRole
+      Type: MANAGED
+      State: ENABLED
+      ComputeResources:
+        InstanceRole: !GetAtt ECSInstanceProfile.Arn
+        InstanceTypes:
+          - optimal
+        MinvCpus: !Ref DefaultCEMinvCpus
+        Subnets: !Ref SubnetIds
+        MaxvCpus: !Ref DefaultCEMaxvCpus
+        SecurityGroupIds:
+          - !Ref GenomicsBatchSecurityGroup
+        Type: EC2
+        Ec2Configuration:
+          - ImageType: "ECS_AL2023"
+            ImageIdOverride: "ami-0788dd3f7e65c7939"
+        Tags:
+          Name: !Sub
+            - nextflow-batch-ondemand-worker-${StackGuid}
+            - StackGuid: !Select [ 2, !Split [ "/", !Ref "AWS::StackId" ]]
+ 
+  GenomicsDefaultQueue:
+    Type: AWS::Batch::JobQueue
+    Properties:
+      JobQueueName: !Sub
+        - nextflow-jq
+        - StackGuid: !Select [ 2, !Split [ "/", !Ref "AWS::StackId" ]]
+      Priority: 10
+      State: ENABLED
+      ComputeEnvironmentOrder:
+        - Order: 1
+          ComputeEnvironment: !Ref GenomicsDefaultComputeEnv
+
+  BatchServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: batch.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole
+
+  ECSInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: ec2.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+      - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      - arn:aws:iam::aws:policy/AWSBatchFullAccess  
+
+  ECSInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref ECSInstanceRole 
+
+Outputs:
+  DefaultJobQueueArn:
+    Value: !Ref GenomicsDefaultQueue
