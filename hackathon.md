@@ -146,6 +146,11 @@ docker push ${ImageId}:latest
 ## Step 3: deploy architechture on AWS Batch
 
 
+<p align="center">
+  <img width="800" alt="test_full error" src="img/architecture.png">
+</p>
+
+
 Create Input, output and work buckets (input not needed for test runs)
 
 ```
@@ -287,7 +292,15 @@ aws batch submit-job --cli-input-json file://sarek-job.json
 
 ## Step 4b: run Sarek with the test_full profile
 
-> NOTE: This eventually fails with . Is this an issue with not enough EBS volume? The AMI I'm using has 30GB root + 500GB additional volume. Do we need to set up EBS auto-scaling?
+> NOTE: This starts running eventually fails with `No space left on device` errors. Is this an issue with not enough EBS volume? The AMI I'm using has 30GB root + 500GB additional volume. Do we need to set up EBS auto-scaling? Some people mentioned similar issues [here](https://nfcore.slack.com/archives/CE7FBAMRP/p1644881905070519) and [here](https://stackoverflow.com/questions/74596201/nextflow-sarek-pipeline-on-aws-batch)
+
+
+<p align="center">
+  <img width="800" alt="test_full error" src="img/full_test_error">
+</p>
+
+
+&nbsp;
 
 ```
 NXF_VER=24.04.4
