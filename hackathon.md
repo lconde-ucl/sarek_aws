@@ -14,6 +14,11 @@
 **1-** EC2 dashboard -> Instances -> Launch instance -> Browse more AMIs -> Click AWS Marketplace AMIs -> search for ECS -> filter by “Free” -> Select 
 Amazon ECS-Optimized Amazon Linux 2023 (AL2023) x86_64 AMI (or other recent one) -> click Subscribe now
 
+<p align="center">
+  <img width="800" alt="ami" src="img/ami.png">
+</p>
+
+
 **2-** In section **Instance type** select instance type = m5.large, and in section **Key pair** -> create new key pair. Save the *.pem file
 
 **3-** Check that in the section **Network settings**, “Auto-assign Public ID” is ENABLED, otherwise, click “Edit” and enable it. Create a new security group that allows ssh traffic from anywhere, otherwise I will not be able to ssh to the instance.
