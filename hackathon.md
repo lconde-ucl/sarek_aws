@@ -9,11 +9,7 @@
 
 ## Step 1: create AMI
 
-&nbsp;
-
-> NOTE: These instructions use the console, but they should eventually be updated to use the aws cli
-
-&nbsp;
+> NOTE: These instructions currently use the console, but they should be updated in the future to use the AWS CLI for a more automated and efficient process
 
 **1-** EC2 dashboard -> Instances -> Launch instance -> Browse more AMIs -> Click AWS Marketplace AMIs -> search for ECS -> filter by “Free” -> Select 
 Amazon ECS-Optimized Amazon Linux 2023 (AL2023) x86_64 AMI (or other recent one) -> click Subscribe now
@@ -55,8 +51,6 @@ rm Miniconda3-latest-Linux-x86_64.sh
 &nbsp;
 
 ## Step 2: build Nextflow container
-
-&nbsp;
 
 If needed, free up space 
 ```
@@ -150,8 +144,6 @@ docker push ${ImageId}:latest
 &nbsp;
 
 ## Step 3: deploy architechture on AWS Batch
-
-&nbsp;
 
 
 Create Input, output and work buckets (input not needed for test runs)
@@ -250,7 +242,6 @@ aws batch describe-job-queues --region $AWS_REGION
 aws batch describe-job-definitions --region $AWS_REGION
 ```
 
-
 &nbsp;
 
 ## Step 4a: run Sarek with the test profile
@@ -292,11 +283,9 @@ EOF
 aws batch submit-job --cli-input-json file://sarek-job.json
 ```
 
-
 &nbsp;
 
 ## Step 4b: run Sarek with the test_full profile
-
 
 > NOTE: This eventually fails with . Is this an issue with not enough EBS volume? The AMI I'm using has 30GB root + 500GB additional volume. Do we need to set up EBS auto-scaling?
 
