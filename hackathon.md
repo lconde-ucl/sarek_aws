@@ -11,7 +11,7 @@
 
 > NOTE: These instructions currently use the console, but they should be updated in the future to use the AWS CLI for a more automated and efficient process
 
-**1-** EC2 dashboard -> Instances -> Launch instance -> Browse more AMIs -> Click AWS Marketplace AMIs -> search for ECS -> filter by “Free” -> Select 
+**1-** Go to EC2 dashboard -> Instances -> Launch instance -> Browse more AMIs, Then click "AWS Marketplace AMIs" -> search for ECS -> filter by “Free” -> Select 
 Amazon ECS-Optimized Amazon Linux 2023 (AL2023) x86_64 AMI (or other recent one) -> click Subscribe now
 
 <p align="center">
@@ -21,22 +21,22 @@ Amazon ECS-Optimized Amazon Linux 2023 (AL2023) x86_64 AMI (or other recent one)
 
 **2-** In section **Instance type** select instance type = m5.large, and in section **Key pair** -> create new key pair. Save the *.pem file
 
-**3-** Check that in the section **Network settings**, “Auto-assign Public ID” is ENABLED, otherwise, click “Edit” and enable it. Create a new security group that allows ssh traffic from anywhere, otherwise I will not be able to ssh to the instance.
+**3-** Check that in the section **Network settings**, “Auto-assign Public ID” is ENABLED, otherwise, click “Edit” and enable it. Create a new security group that allows ssh traffic from anywhere to be able to ssh to the instance.
 
-**4-** In section **Configure storage** selcet 30Gb gp3 (root volume) and add another EBS volume of 500Gb
+**4-** In section **Configure storage** select 30Gb gp3 (root volume) and add another 500Gb EBS volume
 
 **5-** Click “Create Instance”
 
 **6-** Add aws-cli to the AMI
 
-To SSH into your EC2 instance on AWS, you'll need the **public IP address** of your instance (find it in the AWS console -> instance) and the **key pair file** (.pem) associated with it with permissions set to allow only the owner to read and write (chmod 400 /path/to/your-key.pem). The username depends on the operating system of your EC2 instance. For Amazon Linux, the default username is ec2-user.
+To SSH into your EC2 instance on AWS, you'll need the **public IP address** of your instance (find it in the AWS console -> instance) and the **key pair file** (.pem) associated with it.
 
 ```
 #- add permissions
-chmod 400 KEYPAIR.pem
+chmod 400 <KEYPAIR.pem>
 
 #- ssh to the instance you just created
-ssh -i <KEYPAIR.pem> ec2-user@<IPADDRESS>
+ssh -i <KEYPAIR.pem> ec2-user@<AMI_PUBLIC_IP_ADDRESS>
 sudo yum update
 
 #- install aws-cli using miniconda
@@ -208,16 +208,12 @@ SUBNET_IDS=`aws ec2 describe-subnets --query "Subnets[*].SubnetId" --filters Nam
 echo "export SUBNET_IDS=${SUBNET_IDS}"
 ```
 
-Deploy CE from template _(modified from `s3://ws-assets-prod-iad-r-cmh-8d6e9c21a4dec77d/1ff03bed-5358-4eec-84de-1a99cdc81a76/nextflow-batch-ce-jq.template.yaml`)_
-
+Deploy CE from template _(modified from `s3://ws-assets-prod-iad-r-cmh-8d6e9c21a4dec77d/1ff03bed-5358-4eec-84de-1a99cdc81a76/nextflow-batch-ce-jq.template.yaml`)_. **Add here the ID and TYPE of the AMI that you created in step 1**
 ```
 wget -N https://raw.githubusercontent.com/lconde-ucl/sarek_aws/refs/heads/main/nextflow-batch-ce-jq.template.yaml
 
-#----------------------
-# CHANGE YOUR AMI ID
-#----------------------
-AMI_ID="ami-0ff91595530baf417" 
-AMI_TYPE="ECS_AL2023"
+AMI_ID=<AMI_ID, e.g: ami-xxxx> 
+AMI_TYPE=<AMY_TYPE, e.g: ECS_AL2023>
 echo "export AMI_TYPE=${AMI_ID}"
 echo "export AMI_TYPE=${AMI_TYPE}"
 
