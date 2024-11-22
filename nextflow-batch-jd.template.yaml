@@ -47,7 +47,7 @@ Resources:
     Type: AWS::Batch::JobDefinition
     Properties:
       Type: container
-      JobDefinitionName: nextflow-demo-lc
+      JobDefinitionName: nextflow-demo
       ContainerProperties:
         Image: !Ref ImageId 
         ResourceRequirements:
