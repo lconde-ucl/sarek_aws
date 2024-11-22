@@ -1,24 +1,13 @@
----
-title: "AWS set up"
-author: l.conde@ucl.ac.uk
-date: "17 July, 2024"
-output: 
-  html_document:
-    toc: true
-    toc_float: true
-    toc_collapsed: true
-    toc_depth: 3
-    theme: lumen
----
 
 
+# AWS set up
 
 &nbsp;
 &nbsp;
 &nbsp;
 
 
-# Step 1: create AMI
+## Step 1: create AMI
 
 &nbsp;
 
@@ -65,7 +54,7 @@ rm Miniconda3-latest-Linux-x86_64.sh
 
 &nbsp;
 
-# Step 2: build Nextflow container
+## Step 2: build Nextflow container
 
 &nbsp;
 
@@ -160,7 +149,7 @@ docker push ${ImageId}:latest
 
 &nbsp;
 
-# Step 3: deploy architechture on AWS Batch
+## Step 3: deploy architechture on AWS Batch
 
 &nbsp;
 
@@ -264,7 +253,7 @@ aws batch describe-job-definitions --region $AWS_REGION
 
 &nbsp;
 
-# Step 4a: run Sarek with the test profile
+## Step 4a: run Sarek with the test profile
 
 > NOTE: This completes successfully. However, if resubmitted with `-resume` (and same work folder), it does not cache, it runs all the jobs again
 
@@ -306,7 +295,7 @@ aws batch submit-job --cli-input-json file://sarek-job.json
 
 &nbsp;
 
-# Step 4b: run Sarek with the test_full profile
+## Step 4b: run Sarek with the test_full profile
 
 
 > NOTE: This eventually fails with . Is this an issue with not enough EBS volume? The AMI I'm using has 30GB root + 500GB additional volume. Do we need to set up EBS auto-scaling?
