@@ -85,7 +85,7 @@ Resources:
     Type: AWS::Batch::ComputeEnvironment
     Properties:
       ComputeEnvironmentName: !Sub
-        - nextflow-ce-lc
+        - nextflow-ce
         - StackGuid: !Select [ 2, !Split [ "/", !Ref "AWS::StackId" ]]
       ServiceRole: !Ref BatchServiceRole
       Type: MANAGED
