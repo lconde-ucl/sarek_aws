@@ -147,7 +147,7 @@ docker push ${ImageId}:latest
 
 
 <p align="center">
-  <img width="800" alt="test_full error" src="img/architecture.png">
+  <img width="800" alt="architecture" src="img/architecture.png">
 </p>
 
 
@@ -296,7 +296,7 @@ aws batch submit-job --cli-input-json file://sarek-job.json
 
 
 <p align="center">
-  <img width="800" alt="test_full error" src="img/full_test_error">
+  <img width="800" alt="test_full error" src="img/full_test_error.png">
 </p>
 
 
