@@ -113,7 +113,7 @@ Resources:
     Type: AWS::Batch::JobQueue
     Properties:
       JobQueueName: !Sub
-        - nextflow-jq-lc
+        - nextflow-jq
         - StackGuid: !Select [ 2, !Split [ "/", !Ref "AWS::StackId" ]]
       Priority: 10
       State: ENABLED
