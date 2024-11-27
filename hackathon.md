@@ -265,6 +265,7 @@ cat > sarek-job.json << EOF
     "jobName": "sarek-test",
     "jobQueue": "nextflow-jq",
     "jobDefinition": "nextflow-demo",
+    "timeout": {"attemptDurationSeconds": 3600},
     "containerOverrides": {
          "command": [
                 "/usr/local/bin/entrypoint.sh"
