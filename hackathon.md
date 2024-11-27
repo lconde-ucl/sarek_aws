@@ -252,7 +252,7 @@ aws batch describe-job-definitions --region $AWS_REGION
 
 ## Step 4a: run Sarek with the test profile
 
-> NOTE: This completes successfully. However, if resubmitted with `-resume` (and same work folder), it does not cache, it runs all the jobs again
+> NOTE: This completes successfully. 
 
 ```
 NXF_VER=24.04.4
@@ -265,7 +265,6 @@ cat > sarek-job.json << EOF
     "jobName": "sarek-test",
     "jobQueue": "nextflow-jq",
     "jobDefinition": "nextflow-demo",
-    "timeout": {"attemptDurationSeconds": 3600},
     "containerOverrides": {
          "command": [
                 "/usr/local/bin/entrypoint.sh"
@@ -314,7 +313,6 @@ cat > sarek-job.json << EOF
     "jobName": "sarek-full-test",
     "jobQueue": "nextflow-jq",
     "jobDefinition": "nextflow-demo",
-    "timeout": {"attemptDurationSeconds": 3600},
     "containerOverrides": {
          "command": [
                 "/usr/local/bin/entrypoint.sh"
