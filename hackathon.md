@@ -313,12 +313,13 @@ cat > sarek-job.json << EOF
     "jobName": "sarek-full-test",
     "jobQueue": "nextflow-jq",
     "jobDefinition": "nextflow-demo",
+    "timeout": {"attemptDurationSeconds": 259200},
     "containerOverrides": {
          "command": [
                 "/usr/local/bin/entrypoint.sh"
          ],
          "resourceRequirements": [
-                { "value": "24576", "type": "MEMORY" },
+                { "value": "65536", "type": "MEMORY" },
                 { "value": "16", "type": "VCPU" }
         ],
         "environment": [
