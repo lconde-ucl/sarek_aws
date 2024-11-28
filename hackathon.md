@@ -253,9 +253,9 @@ aws batch describe-job-definitions --region $AWS_REGION
 
 ## Step 4a: run Sarek with the test profile
 
-> **NOTE1:** This completes successfully, however, the `-resume` option does not work, jobs don't cache when resubmitted, even if the `BUCKET_NAME_RESULTS` and `BUCKET_NAME_TEMP` remain the same
+> **NOTE1:** This completes successfully, however, the `-resume` option does not work, jobs don't cache when resubmitted, even if the `BUCKET_NAME_RESULTS` and `BUCKET_NAME_TEMP` remain the same. this is probably related to [this issue](https://github.com/nextflow-io/nextflow/discussions/4876)
 
-> **NOTE2:** If you wnat to track your jobs in seqera platform, add your TOWER_ACCESS_TOKEN below
+> **NOTE2:** If you want to track your jobs in seqera platform, add your TOWER_ACCESS_TOKEN below
 
 ```
 NXF_VER=24.04.4
@@ -288,13 +288,13 @@ cat > sarek-job.json << EOF
                 { "value": "16", "type": "VCPU" }
         ],
         "environment": [
-            {"name": "JAVA_TOOL_OPTIONS", "value": "-Xms24G -Xmx24G"},
             {"name": "PIPELINE_URL","value": "https://github.com/nf-core/sarek"},
             {"name": "NF_SCRIPT","value": "main.nf"},
             {"name": "NXF_DEFAULT_DSL","value": "${NXF_DSL}"},
             {"name": "NXF_VER","value": "${NXF_VER}"},
+            {"name": "JAVA_TOOL_OPTIONS", "value": "-Xms24G -Xmx24G"},
             {"name": "TOWER_ACCESS_TOKEN","value": "${TOWER_ACCESS_TOKEN}"},
-            {"name": "NF_OPTS","value": "-profile batch,test --outdir s3://${BUCKET_NAME_RESULTS}/sarek_test -bucket-dir s3://${BUCKET_NAME_TEMP} -resume ${TOWER}"}
+            {"name": "NF_OPTS","value": "-profile batch,test --outdir s3://${BUCKET_NAME_RESULTS}/sarek_test -work-dir s3://${BUCKET_NAME_TEMP}/work -resume ${TOWER}"}
         ]
     }
 }
@@ -349,13 +349,13 @@ cat > sarek-job.json << EOF
                 { "value": "16", "type": "VCPU" }
         ],
         "environment": [
-            {"name": "JAVA_TOOL_OPTIONS", "value": "-Xms24G -Xmx24G"},
             {"name": "PIPELINE_URL","value": "https://github.com/nf-core/sarek"},
             {"name": "NF_SCRIPT","value": "main.nf"},
             {"name": "NXF_DEFAULT_DSL","value": "${NXF_DSL}"},
             {"name": "NXF_VER","value": "${NXF_VER}"},
+            {"name": "JAVA_TOOL_OPTIONS", "value": "-Xms24G -Xmx24G"},
             {"name": "TOWER_ACCESS_TOKEN","value": "${TOWER_ACCESS_TOKEN}"},
-            {"name": "NF_OPTS","value": "-profile batch,test_full --outdir s3://${BUCKET_NAME_RESULTS}/sarek_test -bucket-dir s3://${BUCKET_NAME_TEMP} -resume ${TOWER}"}
+            {"name": "NF_OPTS","value": "-profile batch,test_full --outdir s3://${BUCKET_NAME_RESULTS}/sarek_test -work-dir s3://${BUCKET_NAME_TEMP}/work -resume ${TOWER}"}
         ]
     }
 }
