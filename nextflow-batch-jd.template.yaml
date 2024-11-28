@@ -9,18 +9,12 @@ Metadata:
           default: "AWS Batch Job Definition Config"
         Parameters:
         - NFJobQueue
-        - BucketNameResults
-        - BucketTempResults
         - ImageId
         - ECSRoleArn
         - AWSRegion
     ParameterLabels:
       NFJobQueue:
         default: AWS Batch Job Queue name to execute Nextflow jobs 
-      BucketNameResults:
-        default: Amazon S3 bucket name to store Nextflow results
-      BucketTempResults:
-        default: Amazon S3 bucket name for the work folder
       ImageId:
         default: ECR Repo name
       ECSRoleArn:
@@ -32,12 +26,6 @@ Parameters:
   NFJobQueue:
     Type: String
     Description: 'The name of the AWS Batch Job Queue to execute Nextflow jobs'
-  BucketNameResults:
-    Type: String
-    Description: 'The name of the Amazon S3 bucket name to store Nextflow results.'
-  BucketTempResults:
-    Type: String
-    Description: 'The name of the Amazon S3 bucket name for the work folder.'
   ImageId:
     Type: String
     Description: 'The name of the ECR repo'
@@ -79,10 +67,6 @@ Resources:
           Value: script7.nf
         - Name: NXF_DEFAULT_DSL
           Value: 1
-        - Name: BUCKET_NAME_RESULTS
-          Value: !Ref BucketNameResults
-        - Name: BUCKET_TEMP_RESULTS
-          Value: !Ref BucketTempResults
         - Name: NF_JOB_QUEUE
           Value: !Ref NFJobQueue
         - Name: NXF_VER
