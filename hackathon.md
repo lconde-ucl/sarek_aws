@@ -318,11 +318,9 @@ aws batch submit-job --cli-input-json file://sarek-job.json
 > **NOTE3:** I increased it to 64GB root + 2000GB additional volume. I ran the full test again and this time ran for longer but eventually failed with `DockerTimeoutError: Could not transition to created; timed out after waiting 4m0s` error. Some discussions about it [here](https://nextflow.slack.com/archives/C02T97HAV5M/p1688738943237399) or [here](https://nextflow.slack.com/archives/C02T97HAV5M/p1696443025639869). I tried to play around with the `ECS_CONTAINER_START_TIMEOUT` and `ECS_CONTAINER_CREATE_TIMEOUT` variable smentioned in one of these, but I reran the full test and again failed with `No space left on device errors`, despite the 2Tb additional volume
 
 <p align="center">
-  <img width="600" alt="test_full error" src="img/full_test_error2.png">
+  <img width="400" alt="test_full error" src="img/full_test_error3.png">  <img width="600" alt="test_full error" src="img/full_test_error2.png">
 </p>
-<p align="center">
-  <img width="600" alt="test_full error" src="img/full_test_error3.png">
-</p>
+
 
 &nbsp;
 
