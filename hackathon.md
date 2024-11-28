@@ -212,6 +212,7 @@ Deploy CE from template _(modified from `s3://ws-assets-prod-iad-r-cmh-8d6e9c21a
 ```
 wget -N https://raw.githubusercontent.com/lconde-ucl/sarek_aws/refs/heads/main/nextflow-batch-ce-jq.template.yaml
 
+#- Add the ID and TYPE of the AMI that you created in step 1
 AMI_ID=<AMI_ID, e.g: ami-xxxx> 
 AMI_TYPE=<AMY_TYPE, e.g: ECS_AL2023>
 echo "export AMI_TYPE=${AMI_ID}"
@@ -220,7 +221,7 @@ echo "export AMI_TYPE=${AMI_TYPE}"
 aws cloudformation deploy --stack-name nextflow-batch-ce-jq --template-file nextflow-batch-ce-jq.template.yaml --capabilities CAPABILITY_IAM --region ${AWS_REGION} --parameter-overrides VpcId=${VPC_ID} SubnetIds=${SUBNET_IDS} DefaultImageIdOverride=${AMI_ID} DefaultImageType=${AMI_TYPE}
 ```
 
-Set up AWS Batch Job Definition
+Set up AWS Batch Job Definition.
 ```
 ImageId=`aws ecr describe-repositories --repository-names ${REPOSITORY_NAME} --output text --query 'repositories[0].[repositoryUri]' --region $AWS_REGION`
 echo "export ImageId=${ImageId}"
@@ -238,7 +239,7 @@ Deploy JD from template _(modified from s3://ws-assets-prod-iad-r-cmh-8d6e9c21a4
 ```
 wget -N https://raw.githubusercontent.com/lconde-ucl/sarek_aws/refs/heads/main/nextflow-batch-jd.template.yaml
 
-aws cloudformation deploy --stack-name nextflow-batch-jd --template-file nextflow-batch-jd.template.yaml --capabilities CAPABILITY_IAM --region ${AWS_REGION} --parameter-overrides NFJobQueue=${NFJobQueue} BucketNameResults=${BUCKET_NAME_RESULTS} BucketTempResults=${BUCKET_NAME_TEMP}  ImageId=${ImageId} ECSRoleArn=${ECSRoleArn} AWSRegion=${AWS_REGION}
+aws cloudformation deploy --stack-name nextflow-batch-jd --template-file nextflow-batch-jd.template.yaml --capabilities CAPABILITY_IAM --region ${AWS_REGION} --parameter-overrides NFJobQueue=${NFJobQueue} ImageId=${ImageId} ECSRoleArn=${ECSRoleArn} AWSRegion=${AWS_REGION}
 ```
 
 Describe Your Environment (if you wish)
@@ -252,13 +253,25 @@ aws batch describe-job-definitions --region $AWS_REGION
 
 ## Step 4a: run Sarek with the test profile
 
-> NOTE: This completes successfully. 
+> NOTE1: This completes successfully, however, the -resume option does not work, jobs don't cache when resubmitted, even if the BUCKET_NAME_RESULTS and BUCKET_NAME_TEMP remain the same
+
+> NOTE2: If you wnat to track your jobs in seqera platform, add your TOWER_ACCESS_TOKEN below
 
 ```
 NXF_VER=24.04.4
 NXF_DSL=2
 export NXF_VER=${NXF_VER}
 export NXF_DSL=${NXF_DSL}
+
+#- Add your tower access token if you wnat to track your jobs in sequera platform:
+TOWER_ACCESS_TOKEN="xxxxxxxxx"
+echo "export TOWER_ACCESS_TOKEN=${TOWER_ACCESS_TOKEN}"
+TOWER=" -with-tower"
+
+#- otherwise leave blank
+TOWER_ACCESS_TOKEN=""
+echo "export TOWER_ACCESS_TOKEN=${TOWER_ACCESS_TOKEN}"
+TOWER=" "
 
 cat > sarek-job.json << EOF
 {
@@ -280,7 +293,8 @@ cat > sarek-job.json << EOF
             {"name": "NF_SCRIPT","value": "main.nf"},
             {"name": "NXF_DEFAULT_DSL","value": "${NXF_DSL}"},
             {"name": "NXF_VER","value": "${NXF_VER}"},
-            {"name": "NF_OPTS","value": "-profile batch,test --outdir s3://${BUCKET_NAME_RESULTS}/sarek_test -bucket-dir s3://${BUCKET_NAME_TEMP}"}
+            {"name": "TOWER_ACCESS_TOKEN","value": "${TOWER_ACCESS_TOKEN}"},
+            {"name": "NF_OPTS","value": "-profile batch,test --outdir s3://${BUCKET_NAME_RESULTS}/sarek_test -bucket-dir s3://${BUCKET_NAME_TEMP} -resume ${TOWER}"}
         ]
     }
 }
@@ -293,7 +307,9 @@ aws batch submit-job --cli-input-json file://sarek-job.json
 
 ## Step 4b: run Sarek with the test_full profile
 
-> NOTE: This starts running eventually fails with `No space left on device` errors. Is this an issue with not enough EBS volume? The AMI I'm using has 30GB root + 500GB additional volume. Do we need to set up EBS auto-scaling? Some people mentioned similar issues [here](https://nfcore.slack.com/archives/CE7FBAMRP/p1644881905070519) and [here](https://stackoverflow.com/questions/74596201/nextflow-sarek-pipeline-on-aws-batch)
+> NOTE1: This starts running eventually fails with `No space left on device` errors. Is this an issue with not enough EBS volume? The AMI I'm using has 30GB root + 500GB additional volume. Do we need to set up EBS auto-scaling? Some people mentioned similar issues [here](https://nfcore.slack.com/archives/CE7FBAMRP/p1644881905070519) and [here](https://stackoverflow.com/questions/74596201/nextflow-sarek-pipeline-on-aws-batch)
+
+> NOTE2: Using an AMI with 64GB root + 1000GB additional volume, the run goes further but eventually also fails with `No space left on device errors`
 
 
 <p align="center">
@@ -308,6 +324,16 @@ NXF_VER=24.04.4
 NXF_DSL=2
 export NXF_VER=${NXF_VER}
 export NXF_DSL=${NXF_DSL}
+
+#- Add your tower access token if you wnat to track your jobs in sequera platform:
+TOWER_ACCESS_TOKEN="xxxxxxxxx"
+echo "export TOWER_ACCESS_TOKEN=${TOWER_ACCESS_TOKEN}"
+TOWER=" -with-tower"
+
+#- otherwise leave blank
+TOWER_ACCESS_TOKEN=""
+echo "export TOWER_ACCESS_TOKEN=${TOWER_ACCESS_TOKEN}"
+TOWER=" "
 
 cat > sarek-job.json << EOF
 {
@@ -329,7 +355,8 @@ cat > sarek-job.json << EOF
             {"name": "NF_SCRIPT","value": "main.nf"},
             {"name": "NXF_DEFAULT_DSL","value": "${NXF_DSL}"},
             {"name": "NXF_VER","value": "${NXF_VER}"},
-            {"name": "NF_OPTS","value": "-profile batch,test_full --outdir s3://${BUCKET_NAME_RESULTS}/sarek_test -bucket-dir s3://${BUCKET_NAME_TEMP}"}
+            {"name": "TOWER_ACCESS_TOKEN","value": "${TOWER_ACCESS_TOKEN}"},
+            {"name": "NF_OPTS","value": "-profile batch,test_full --outdir s3://${BUCKET_NAME_RESULTS}/sarek_test -bucket-dir s3://${BUCKET_NAME_TEMP} -resume ${TOWER}"}
         ]
     }
 }
