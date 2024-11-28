@@ -253,9 +253,9 @@ aws batch describe-job-definitions --region $AWS_REGION
 
 ## Step 4a: run Sarek with the test profile
 
-> NOTE1: This completes successfully, however, the -resume option does not work, jobs don't cache when resubmitted, even if the BUCKET_NAME_RESULTS and BUCKET_NAME_TEMP remain the same
+> **NOTE1:** This completes successfully, however, the `-resume` option does not work, jobs don't cache when resubmitted, even if the `BUCKET_NAME_RESULTS` and `BUCKET_NAME_TEMP` remain the same
 
-> NOTE2: If you wnat to track your jobs in seqera platform, add your TOWER_ACCESS_TOKEN below
+> **NOTE2:** If you wnat to track your jobs in seqera platform, add your TOWER_ACCESS_TOKEN below
 
 ```
 NXF_VER=24.04.4
@@ -307,14 +307,13 @@ aws batch submit-job --cli-input-json file://sarek-job.json
 
 ## Step 4b: run Sarek with the test_full profile
 
-> NOTE1: This starts running eventually fails with `No space left on device` errors. Is this an issue with not enough EBS volume? The AMI I'm using has 30GB root + 500GB additional volume. Do we need to set up EBS auto-scaling? Some people mentioned similar issues [here](https://nfcore.slack.com/archives/CE7FBAMRP/p1644881905070519) and [here](https://stackoverflow.com/questions/74596201/nextflow-sarek-pipeline-on-aws-batch)
-
-> NOTE2: Using an AMI with 64GB root + 1000GB additional volume, the run goes further but eventually also fails with `No space left on device errors`
-
+> **NOTE1:** This starts running eventually fails with `No space left on device` errors. Is this an issue with not enough EBS volume? The AMI I'm using has 30GB root + 500GB additional volume. Do we need to set up EBS auto-scaling? Some people mentioned similar issues [here](https://nfcore.slack.com/archives/CE7FBAMRP/p1644881905070519) and [here](https://stackoverflow.com/questions/74596201/nextflow-sarek-pipeline-on-aws-batch)
 
 <p align="center">
   <img width="800" alt="test_full error" src="img/full_test_error.png">
 </p>
+
+> **NOTE2:** Using an AMI with 64GB root + 1000GB additional volume, the run goes further but eventually also fails with `No space left on device errors`
 
 
 &nbsp;
