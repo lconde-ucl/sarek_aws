@@ -120,17 +120,17 @@ sed -i -e '/process.container/d' nextflow.config
 #- Trap to handle errors and cleanup 
 cleanup() {
     echo "Syncing Nextflow cache and history back to S3 after error or interruption..."
-    aws s3 cp --recursive /scratch/.nextflow ${NF_HOME}/
+    aws s3 cp --recursive /scratch/.nextflow ${NF_CACHE}/
 }
 trap cleanup EXIT
 
 #- sync the cache and history from previous runs
-aws s3 sync ${NF_HOME} /scratch/.nextflow
+aws s3 sync ${NF_CACHE} /scratch/.nextflow
 
 nextflow run ${NF_SCRIPT} ${NF_OPTS} 
 
 #- sync the updated cache and history back to the bucket
-aws s3 cp --recursive /scratch/.nextflow ${NF_HOME}/
+aws s3 cp --recursive /scratch/.nextflow ${NF_CACHE}/
 EOFF
 
 chmod +x entrypoint.sh
@@ -306,7 +306,7 @@ cat > sarek-job.json << EOF
             {"name": "NXF_VER","value": "${NXF_VER}"},
             {"name": "JAVA_TOOL_OPTIONS", "value": "-Xms24G -Xmx24G"},
             {"name": "TOWER_ACCESS_TOKEN","value": "${TOWER_ACCESS_TOKEN}"},
-            {"name": "NF_HOME","value": "s3://${BUCKET_NAME_TEMP}/cache"},
+            {"name": "NF_CACHE","value": "s3://${BUCKET_NAME_TEMP}/cache"},
             {"name": "NF_OPTS","value": "-profile batch,test --outdir s3://${BUCKET_NAME_RESULTS}/sarek_test -work-dir s3://${BUCKET_NAME_TEMP}/work -resume ${TOWER}"}
         ]
     }
@@ -374,7 +374,7 @@ cat > sarek-job.json << EOF
             {"name": "NXF_VER","value": "${NXF_VER}"},
             {"name": "JAVA_TOOL_OPTIONS", "value": "-Xms24G -Xmx24G"},
             {"name": "TOWER_ACCESS_TOKEN","value": "${TOWER_ACCESS_TOKEN}"},
-            {"name": "NF_HOME","value": "s3://${BUCKET_NAME_TEMP}/cache"},
+            {"name": "NF_CACHE","value": "s3://${BUCKET_NAME_TEMP}/cache"},
             {"name": "NF_OPTS","value": "-profile batch,test_full --outdir s3://${BUCKET_NAME_RESULTS}/sarek_test -work-dir s3://${BUCKET_NAME_TEMP}/work -resume ${TOWER}"}
         ]
     }
