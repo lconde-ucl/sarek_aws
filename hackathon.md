@@ -77,22 +77,22 @@ cat > entrypoint.sh << EOFF
 #!/bin/bash
 set -ex
 
-PIPELINE_URL=\${PIPELINE_URL:-https://github.com/seqeralabs/nextflow-tutorial.git}
-NF_SCRIPT=\${NF_SCRIPT:-main.nf}
-NF_OPTS=\${NF_OPTS}
+PIPELINE_URL=${PIPELINE_URL:-https://github.com/seqeralabs/nextflow-tutorial.git}
+NF_SCRIPT=${NF_SCRIPT:-main.nf}
+NF_OPTS=${NF_OPTS}
 NF_CONFIG=/root/.nextflow/config
 
-cat << EOF > \$NF_CONFIG
+cat << EOF > $NF_CONFIG
 profiles {
   standard {
       process.container = 'nextflow/rnaseq-nf:s3'
       docker.enabled = true
      }
   batch {
-      aws.region = "\$AWS_REGION"
+      aws.region = "$AWS_REGION"
       process.container = 'nextflow/rnaseq-nf:s3'
       process.executor = 'awsbatch'
-      process.queue = "\$NF_JOB_QUEUE"
+      process.queue = "$NF_JOB_QUEUE"
       docker.enabled = true
       aws.batch.cliPath = "/home/ec2-user/miniconda/bin/aws" 
     }
@@ -102,22 +102,35 @@ EOF
 echo "=== CONFIGURATION ==="
 cat /root/.nextflow/config
 
-if [[ -z \${AWS_REGION} ]];then
-        AWS_REGION=\$(curl --silent \${ECS_CONTAINER_METADATA_URI} |jq -r '.Labels["com.amazonaws.ecs.task-arn"]' |awk -F: '{print \$4}')
+if [[ -z ${AWS_REGION} ]];then
+        AWS_REGION=$(curl --silent ${ECS_CONTAINER_METADATA_URI} |jq -r '.Labels["com.amazonaws.ecs.task-arn"]' |awk -F: '{print $4}')
 fi
 
-if [[ "\${PIPELINE_URL}" =~ ^s3://.* ]]; then
-        aws s3 cp --recursive \${PIPELINE_URL} /scratch
+if [[ "${PIPELINE_URL}" =~ ^s3://.* ]]; then
+        aws s3 cp --recursive ${PIPELINE_URL} /scratch
     else
         # Assume it is a git repository
-        git clone \${PIPELINE_URL} /scratch
+        git clone ${PIPELINE_URL} /scratch
 fi
 
 cd /scratch
 echo ">> Remove container from pipeline config if present."
 sed -i -e '/process.container/d' nextflow.config
 
-nextflow run \${NF_SCRIPT} \${NF_OPTS} 
+#- Trap to handle errors and cleanup 
+cleanup() {
+    echo "Syncing Nextflow cache and history back to S3 after error or interruption..."
+    aws s3 cp --recursive /scratch/.nextflow ${NF_HOME}/
+}
+trap cleanup EXIT
+
+#- sync the cache and history from previous runs
+aws s3 sync ${NF_HOME} /scratch/.nextflow
+
+nextflow run ${NF_SCRIPT} ${NF_OPTS} 
+
+#- sync the updated cache and history back to the bucket
+aws s3 cp --recursive /scratch/.nextflow ${NF_HOME}/
 EOFF
 
 chmod +x entrypoint.sh
@@ -253,8 +266,7 @@ aws batch describe-job-definitions --region $AWS_REGION
 
 ## Step 4a: run Sarek with the test profile
 
-> **NOTE1:** This completes successfully, however, the `-resume` option does not work, jobs don't cache when resubmitted, even if the `BUCKET_NAME_RESULTS` and `BUCKET_NAME_TEMP` remain the same. this is probably related to [this issue](https://github.com/nextflow-io/nextflow/discussions/4876)
-
+> **NOTE1:** This completes successfully. Also, as long as the `BUCKET_NAME_TEMP` remain the same, the `-resume` option should also work
 > **NOTE2:** If you want to track your jobs in seqera platform, add your TOWER_ACCESS_TOKEN below
 
 ```
@@ -294,6 +306,7 @@ cat > sarek-job.json << EOF
             {"name": "NXF_VER","value": "${NXF_VER}"},
             {"name": "JAVA_TOOL_OPTIONS", "value": "-Xms24G -Xmx24G"},
             {"name": "TOWER_ACCESS_TOKEN","value": "${TOWER_ACCESS_TOKEN}"},
+            {"name": "NF_HOME","value": "s3://${BUCKET_NAME_TEMP}/logs"},
             {"name": "NF_OPTS","value": "-profile batch,test --outdir s3://${BUCKET_NAME_RESULTS}/sarek_test -work-dir s3://${BUCKET_NAME_TEMP}/work -resume ${TOWER}"}
         ]
     }
@@ -361,6 +374,7 @@ cat > sarek-job.json << EOF
             {"name": "NXF_VER","value": "${NXF_VER}"},
             {"name": "JAVA_TOOL_OPTIONS", "value": "-Xms24G -Xmx24G"},
             {"name": "TOWER_ACCESS_TOKEN","value": "${TOWER_ACCESS_TOKEN}"},
+            {"name": "NF_HOME","value": "s3://${BUCKET_NAME_TEMP}/logs"},
             {"name": "NF_OPTS","value": "-profile batch,test_full --outdir s3://${BUCKET_NAME_RESULTS}/sarek_test -work-dir s3://${BUCKET_NAME_TEMP}/work -resume ${TOWER}"}
         ]
     }
