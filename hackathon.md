@@ -306,7 +306,7 @@ cat > sarek-job.json << EOF
             {"name": "NXF_VER","value": "${NXF_VER}"},
             {"name": "JAVA_TOOL_OPTIONS", "value": "-Xms24G -Xmx24G"},
             {"name": "TOWER_ACCESS_TOKEN","value": "${TOWER_ACCESS_TOKEN}"},
-            {"name": "NF_HOME","value": "s3://${BUCKET_NAME_TEMP}/logs"},
+            {"name": "NF_HOME","value": "s3://${BUCKET_NAME_TEMP}/cache"},
             {"name": "NF_OPTS","value": "-profile batch,test --outdir s3://${BUCKET_NAME_RESULTS}/sarek_test -work-dir s3://${BUCKET_NAME_TEMP}/work -resume ${TOWER}"}
         ]
     }
@@ -374,7 +374,7 @@ cat > sarek-job.json << EOF
             {"name": "NXF_VER","value": "${NXF_VER}"},
             {"name": "JAVA_TOOL_OPTIONS", "value": "-Xms24G -Xmx24G"},
             {"name": "TOWER_ACCESS_TOKEN","value": "${TOWER_ACCESS_TOKEN}"},
-            {"name": "NF_HOME","value": "s3://${BUCKET_NAME_TEMP}/logs"},
+            {"name": "NF_HOME","value": "s3://${BUCKET_NAME_TEMP}/cache"},
             {"name": "NF_OPTS","value": "-profile batch,test_full --outdir s3://${BUCKET_NAME_RESULTS}/sarek_test -work-dir s3://${BUCKET_NAME_TEMP}/work -resume ${TOWER}"}
         ]
     }
