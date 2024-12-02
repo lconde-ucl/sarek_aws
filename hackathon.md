@@ -120,7 +120,7 @@ sed -i -e '/process.container/d' nextflow.config
 #- Trap to handle errors and cleanup 
 cleanup() {
     echo "Syncing Nextflow cache and history back to S3 after error or interruption..."
-    aws s3 cp --recursive /scratch/.nextflow \${NF_CACHE}/
+    aws s3 sync /scratch/.nextflow \${NF_CACHE}/
 }
 trap cleanup EXIT
 
@@ -130,7 +130,7 @@ aws s3 sync \${NF_CACHE} /scratch/.nextflow
 nextflow run \${NF_SCRIPT} \${NF_OPTS} 
 
 #- sync the updated cache and history back to the bucket
-aws s3 cp --recursive /scratch/.nextflow \${NF_CACHE}/
+aws s3 sync /scratch/.nextflow \${NF_CACHE}/
 EOFF
 
 chmod +x entrypoint.sh
