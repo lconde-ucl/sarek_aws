@@ -77,22 +77,22 @@ cat > entrypoint.sh << EOFF
 #!/bin/bash
 set -ex
 
-PIPELINE_URL=${PIPELINE_URL:-https://github.com/seqeralabs/nextflow-tutorial.git}
-NF_SCRIPT=${NF_SCRIPT:-main.nf}
-NF_OPTS=${NF_OPTS}
+PIPELINE_URL=\${PIPELINE_URL:-https://github.com/seqeralabs/nextflow-tutorial.git}
+NF_SCRIPT=\${NF_SCRIPT:-main.nf}
+NF_OPTS=\${NF_OPTS}
 NF_CONFIG=/root/.nextflow/config
 
-cat << EOF > $NF_CONFIG
+cat << EOF > \$NF_CONFIG
 profiles {
   standard {
       process.container = 'nextflow/rnaseq-nf:s3'
       docker.enabled = true
      }
   batch {
-      aws.region = "$AWS_REGION"
+      aws.region = "\$AWS_REGION"
       process.container = 'nextflow/rnaseq-nf:s3'
       process.executor = 'awsbatch'
-      process.queue = "$NF_JOB_QUEUE"
+      process.queue = "\$NF_JOB_QUEUE"
       docker.enabled = true
       aws.batch.cliPath = "/home/ec2-user/miniconda/bin/aws" 
     }
@@ -102,15 +102,15 @@ EOF
 echo "=== CONFIGURATION ==="
 cat /root/.nextflow/config
 
-if [[ -z ${AWS_REGION} ]];then
-        AWS_REGION=$(curl --silent ${ECS_CONTAINER_METADATA_URI} |jq -r '.Labels["com.amazonaws.ecs.task-arn"]' |awk -F: '{print $4}')
+if [[ -z \${AWS_REGION} ]];then
+        AWS_REGION=\$(curl --silent \${ECS_CONTAINER_METADATA_URI} |jq -r '.Labels["com.amazonaws.ecs.task-arn"]' |awk -F: '{print \$4}')
 fi
 
-if [[ "${PIPELINE_URL}" =~ ^s3://.* ]]; then
-        aws s3 cp --recursive ${PIPELINE_URL} /scratch
+if [[ "\${PIPELINE_URL}" =~ ^s3://.* ]]; then
+        aws s3 cp --recursive \${PIPELINE_URL} /scratch
     else
         # Assume it is a git repository
-        git clone ${PIPELINE_URL} /scratch
+        git clone \${PIPELINE_URL} /scratch
 fi
 
 cd /scratch
@@ -120,17 +120,17 @@ sed -i -e '/process.container/d' nextflow.config
 #- Trap to handle errors and cleanup 
 cleanup() {
     echo "Syncing Nextflow cache and history back to S3 after error or interruption..."
-    aws s3 cp --recursive /scratch/.nextflow ${NF_CACHE}/
+    aws s3 cp --recursive /scratch/.nextflow \${NF_CACHE}/
 }
 trap cleanup EXIT
 
 #- sync the cache and history from previous runs
-aws s3 sync ${NF_CACHE} /scratch/.nextflow
+aws s3 sync \${NF_CACHE} /scratch/.nextflow
 
-nextflow run ${NF_SCRIPT} ${NF_OPTS} 
+nextflow run \${NF_SCRIPT} \${NF_OPTS} 
 
 #- sync the updated cache and history back to the bucket
-aws s3 cp --recursive /scratch/.nextflow ${NF_CACHE}/
+aws s3 cp --recursive /scratch/.nextflow \${NF_CACHE}/
 EOFF
 
 chmod +x entrypoint.sh
